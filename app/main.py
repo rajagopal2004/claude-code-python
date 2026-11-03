@@ -37,12 +37,15 @@ funcArgs = {
 }
 
 def renderSkills() -> str:
-    skills = "You have access to the following skills: \n"
-    for skillFolder in os.listdir(SKILLS_PARENT_FOLDER):
-        with open(f"{SKILLS_PARENT_FOLDER}/{skillFolder}/SKILL.md", "r") as f:
-            lines = [l.split(":")[1].strip() for l in list(f.read().split("---"))[1].split("\n") if l]
-            skillDescription = ":".join(lines)
-            skills += "\n" + skillDescription
+    try:
+        skills = "You have access to the following skills: \n"
+        for skillFolder in os.listdir(SKILLS_PARENT_FOLDER):
+            with open(f"{SKILLS_PARENT_FOLDER}/{skillFolder}/SKILL.md", "r") as f:
+                lines = [l.split(":")[1].strip() for l in list(f.read().split("---"))[1].split("\n") if l]
+                skillDescription = ":".join(lines)
+                skills += "\n" + skillDescription
+    except:
+        skills = ""
     return skills
 
 def callLLM(client, messages): 

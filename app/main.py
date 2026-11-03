@@ -165,7 +165,7 @@ def main():
         userInput = [w for w in userInput.split(" ") if w]
         skillName = userInput[0]
         skillArgs = userInput[1:]
-        skillBody = resolveSkillBody(f"{SKILLS_PARENT_FOLDER}{skillName}/SKILL.md")
+        skillBody = resolveSkillBody(skillName)
         skillBody = skillBody.replace("$ARGUMENTS", " ".join(skillArgs))
         for i, skillArg in list(zip(range(len(skillArgs)), skillArgs)):
             skillBody = skillBody.replace(f"${i}", skillArg)

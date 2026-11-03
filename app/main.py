@@ -59,9 +59,10 @@ def renderSkills() -> str:
         for skillFolder in os.listdir(SKILLS_PARENT_FOLDER):
             with open(f"{SKILLS_PARENT_FOLDER}/{skillFolder}/SKILL.md", "r") as f:
                 lines = [l.split(":")[1].strip() for l in list(f.read().split("---"))[1].split("\n") if l]
-                skillDescription = ":".join(lines[:-1])
                 if lines[-1] == "fork":
                     SUB_AGENT_SKILLS.append(lines[0])
+                    lines.pop()
+                skillDescription = ":".join(lines)
                 skills += "\n" + skillDescription
         skills += "\n If a skill matches the user's request, call the Skill tool with its name and follow the instructions it returns."
     except:
@@ -218,8 +219,6 @@ def main():
         messages.append({"role": "user", "content": " ".join(uiw)})
         
     execLoop(client, messages)
-
-    print(messages, file=sys.stderr)
 
 if __name__ == "__main__":
     main()

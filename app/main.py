@@ -34,6 +34,7 @@ def execBash(command: str) -> str:
 
 def execSkill(name, args = None):
     skillBody = resolveSkillBody(f"/{name}", args)
+
     if name in SUB_AGENT_SKILLS:
         mess = [{"role": "user", "content": skillBody}]
         client = getClient()
@@ -41,6 +42,7 @@ def execSkill(name, args = None):
         with contextlib.redirect_stdout(buffer):
             execLoop(client, mess)
         return buffer.getvalue()
+    
     return skillBody
 
 funcs = {

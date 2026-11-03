@@ -2,30 +2,37 @@ import argparse
 import os
 import sys
 import json
+import subprocess
 
 from openai import OpenAI
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
 
-def Read(file_path: str) -> str:
+def execRead(file_path: str) -> str:
     content = ""
     with open(file_path, "r") as f:
         content = f.read()
     return content
 
-def Write(file_path: str, content: str) -> None:
+def execWrite(file_path: str, content: str) -> None:
     with open(file_path, "w") as f:
         f.write(content)
+
+def execBash(command: str) -> str:
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return f"returncode: {result.returncode}, stderr: {result.stderr}, stdout: {result.stdout}"
     
 funcs = {
-    "Read": Read,
-    "Write": Write
+    "Read": execRead,
+    "Write": execWrite,
+    "Bash": execBash
 }
 
 funcArgs = {
     "Read": ["file_path"],
-    "Write": ["file_path", "content"]
+    "Write": ["file_path", "content"],
+    "Bash": ["command"]
 }
 
 def callLLM(client, messages): 
@@ -66,6 +73,23 @@ def callLLM(client, messages):
                         "content": {
                         "type": "string",
                         "description": "The content to write to the file"
+                        }
+                    }
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "Bash",
+                    "description": "Execute a shell command",
+                    "parameters": {
+                    "type": "object",
+                    "required": ["command"],
+                    "properties": {
+                        "command": {
+                        "type": "string",
+                        "description": "The command to execute"
                         }
                     }
                     }

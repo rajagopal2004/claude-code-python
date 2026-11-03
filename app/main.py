@@ -147,15 +147,24 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("-p", required=True)
     args = p.parse_args()
+    userInput = str(args.p)
 
     if not API_KEY:
         raise RuntimeError("OPENROUTER_API_KEY is not set")
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
+    if userInput.startswith("/"):
+        userInput = [w for w in userInput.split(" ") if w]
+        skillName = userInput[0]
+        userInput = " ".join(userInput[1:])
+        userInput = execRead(f"{SKILLS_PARENT_FOLDER}/{skillName}") + userInput
+        userInput = userInput.strip()
+        
+
     messages = [
         {"role": "system", "content": renderSkills()},
-        {"role": "user", "content": args.p}
+        {"role": "user", "content": userInput}
     ]
     execLoop(client, messages)
 

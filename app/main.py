@@ -158,7 +158,7 @@ def main():
         userInput = [w for w in userInput.split(" ") if w]
         skillName = userInput[0]
         userInput = " ".join(userInput[1:])
-        userInput = execRead(f"{SKILLS_PARENT_FOLDER}/{skillName}") + userInput
+        userInput = execRead(f"{SKILLS_PARENT_FOLDER}{skillName}") + userInput
         userInput = userInput.strip()
         
 

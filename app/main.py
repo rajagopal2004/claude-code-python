@@ -64,17 +64,16 @@ def main():
 
     message = chat.choices[0].message
     toolCalls = message.tool_calls
-    print(toolCalls, file=sys.stderr)
+    print(toolCalls[0], file=sys.stderr)
 
-    if toolCalls and len(toolCalls) == 0:
-        for toolCall in toolCalls:
-            if toolCall.type == "function":
-                functionName = toolCall.function.name
-                toolArgs  = json.loads(toolCall.function.arguments)
-                reqArgs = funcArgs[functionName]
-                args = [toolArgs[arg] for arg in reqArgs]
-                result = funcs[functionName](*args)
-                print(result)
+    for toolCall in toolCalls:
+        if toolCall.type == "function":
+            functionName = toolCall.function.name
+            toolArgs  = json.loads(toolCall.function.arguments)
+            reqArgs = funcArgs[functionName]
+            args = [toolArgs[arg] for arg in reqArgs]
+            result = funcs[functionName](*args)
+            print(result)
 
     # print(chat.choices[0].message.content)
 

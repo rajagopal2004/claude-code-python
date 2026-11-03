@@ -41,8 +41,7 @@ def execSkill(name, args = None):
         with contextlib.redirect_stdout(buffer):
             execLoop(client, mess)
         return buffer.getvalue()
-    else:
-        return skillBody
+    return skillBody
 
 funcs = {
     "Read": execRead,

@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 import subprocess
+import sys
 import contextlib
 import io
 
@@ -217,7 +218,8 @@ def main():
         messages.append({"role": "user", "content": " ".join(uiw)})
         
     execLoop(client, messages)
- 
+
+    print(messages, file=sys.stderr)
 
 if __name__ == "__main__":
     main()

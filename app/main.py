@@ -49,7 +49,7 @@ def renderSkills() -> str:
     return skills
 
 def resolveSkillBody(skill) -> str:
-    with open(f"{SKILLS_PARENT_FOLDER}/{skill}/SKILL.md", "r") as f:
+    with open(f"{SKILLS_PARENT_FOLDER}{skill}/SKILL.md", "r") as f:
         return f.read().split("---")[2]
 
 def callLLM(client, messages): 
@@ -161,22 +161,26 @@ def main():
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-    if userInput.startswith("/"):
-        userInput = [w for w in userInput.split(" ") if w]
-        skillName = userInput[0]
-        skillArgs = userInput[1:]
+    messages = [{"role": "system", "content": renderSkills()}]
+
+    uiw = [w for w in userInput.split(" ") if w]
+    esk = []
+    sargs = []
+    for i, w in list(zip(range(len(uiw)), uiw)):
+        if w.startswith("/") and os.path.isdir(f"{SKILLS_PARENT_FOLDER}{w}"):
+           esk.append(w)
+        else:
+           sargs = uiw[i:]
+           break
+    
+    for skillName in esk:
         skillBody = resolveSkillBody(skillName)
-        skillBody = skillBody.replace("$ARGUMENTS", " ".join(skillArgs))
-        for i, skillArg in list(zip(range(len(skillArgs)), skillArgs)):
+        skillBody = skillBody.replace("$ARGUMENTS", " ".join(sargs))
+        for i, skillArg in list(zip(range(len(sargs)), sargs)):
             skillBody = skillBody.replace(f"${i}", skillArg)
             skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
-        userInput = skillBody
+        messages.append({"role": "user", "content": skillBody})
         
-
-    messages = [
-        {"role": "system", "content": renderSkills()},
-        {"role": "user", "content": userInput}
-    ]
     execLoop(client, messages)
 
     

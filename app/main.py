@@ -63,6 +63,8 @@ def main():
     print("Logs from your program will appear here!", file=sys.stderr)
 
     print(chat, file=sys.stderr)
+    message = chat.choices[0].message
+    print(message, file=sys.stderr)
     toolCalls = chat.choices[0].message.tool_calls
 
     if toolCalls and len(toolCalls) == 0:

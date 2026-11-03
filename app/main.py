@@ -48,6 +48,10 @@ def renderSkills() -> str:
         skills = ""
     return skills
 
+def resolveSkillBody(skill) -> str:
+    with open(f"{SKILLS_PARENT_FOLDER}/{skill}/SKILL.md", "r") as f:
+        return f.read().split("---")[2]
+
 def callLLM(client, messages): 
     return client.chat.completions.create(
         model="anthropic/claude-haiku-4.5",
@@ -160,9 +164,13 @@ def main():
     if userInput.startswith("/"):
         userInput = [w for w in userInput.split(" ") if w]
         skillName = userInput[0]
-        userInput = " ".join(userInput[1:])
-        userInput = execRead(f"{SKILLS_PARENT_FOLDER}{skillName}/SKILL.md") + userInput
-        userInput = userInput.strip()
+        skillArgs = userInput[1:]
+        skillBody = resolveSkillBody(f"{SKILLS_PARENT_FOLDER}{skillName}/SKILL.md")
+        skillBody = skillBody.replace("$ARGUMENTS", " ".join(skillArgs))
+        for i, skillArg in list(zip(range(len(skillArgs)), skillArgs)):
+            skillBody = skillBody.replace(f"${i}", skillArg)
+            skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
+        userInput = skillBody
         
 
     messages = [

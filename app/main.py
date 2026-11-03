@@ -14,12 +14,18 @@ def Read(file_path: str) -> str:
         content = f.read()
     return content
 
+def Write(file_path: str, content: str) -> None:
+    with open(file_path, "w") as f:
+        f.write(content)
+    
 funcs = {
-    "Read": Read
+    "Read": Read,
+    "Write": Write
 }
 
 funcArgs = {
-    "Read": ["file_path"]
+    "Read": ["file_path"],
+    "Write": ["file_path", "content"]
 }
 
 def callLLM(client, messages): 
@@ -41,6 +47,27 @@ def callLLM(client, messages):
                         }
                     },
                     "required": ["file_path"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "Write",
+                    "description": "Write content to a file",
+                    "parameters": {
+                    "type": "object",
+                    "required": ["file_path", "content"],
+                    "properties": {
+                        "file_path": {
+                        "type": "string",
+                        "description": "The path of the file to write to"
+                        },
+                        "content": {
+                        "type": "string",
+                        "description": "The content to write to the file"
+                        }
+                    }
                     }
                 }
             }

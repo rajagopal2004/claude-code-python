@@ -62,10 +62,9 @@ def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!", file=sys.stderr)
 
-    print(chat, file=sys.stderr)
     message = chat.choices[0].message
-    print(message, file=sys.stderr)
-    toolCalls = chat.choices[0].message.tool_calls
+    toolCalls = message.tool_calls
+    print(toolCalls, file=sys.stderr)
 
     if toolCalls and len(toolCalls) == 0:
         for toolCall in toolCalls:

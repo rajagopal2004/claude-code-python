@@ -1,14 +1,22 @@
 import argparse
 import os
-import sys
 import json
 import subprocess
+import contextlib
+import io
 
 from openai import OpenAI
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
 SKILLS_PARENT_FOLDER = ".claude/skills"
+SUB_AGENT_SKILLS = []
+
+def getClient():
+    if not API_KEY:
+        raise RuntimeError("OPENROUTER_API_KEY is not set")
+    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
+    return client
 
 def execRead(file_path: str) -> str:
     content = ""
@@ -25,8 +33,16 @@ def execBash(command: str) -> str:
     return f"returncode: {result.returncode}, stderr: {result.stderr}, stdout: {result.stdout}"
 
 def execSkill(name, args = None):
-    name = "/"+name
-    return resolveSkillBody(name, args)
+    skillBody = resolveSkillBody(f"/{name}", args)
+    if name in SUB_AGENT_SKILLS:
+        mess = [{"role": "user", "content": skillBody}]
+        client = getClient()
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            execLoop(client, mess)
+        return buffer.getvalue()
+    else:
+        return skillBody
 
 funcs = {
     "Read": execRead,
@@ -41,7 +57,9 @@ def renderSkills() -> str:
         for skillFolder in os.listdir(SKILLS_PARENT_FOLDER):
             with open(f"{SKILLS_PARENT_FOLDER}/{skillFolder}/SKILL.md", "r") as f:
                 lines = [l.split(":")[1].strip() for l in list(f.read().split("---"))[1].split("\n") if l]
-                skillDescription = ":".join(lines)
+                skillDescription = ":".join(lines[:-1])
+                if lines[-1] == "fork":
+                    SUB_AGENT_SKILLS.append(lines[0])
                 skills += "\n" + skillDescription
         skills += "\n If a skill matches the user's request, call the Skill tool with its name and follow the instructions it returns."
     except:
@@ -176,10 +194,7 @@ def main():
     args = p.parse_args()
     userInput = str(args.p)
 
-    if not API_KEY:
-        raise RuntimeError("OPENROUTER_API_KEY is not set")
-
-    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
+    client = getClient()
 
     messages = [{"role": "system", "content": renderSkills()}]
 

@@ -94,7 +94,6 @@ def main():
 
     messages = [{"role": "user", "content": args.p}]
     execLoop(client, messages)
-    print(messages)
 
     
 

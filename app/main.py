@@ -103,7 +103,7 @@ def execLoop(client, messages):
         toolCallEntry = {
             "role": "tool",
             "tool_call_id": toolCall.id,
-            "content": result
+            "content": str(result)
         }
         messages.append(toolCallEntry)
 

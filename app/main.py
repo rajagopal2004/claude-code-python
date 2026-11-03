@@ -35,13 +35,6 @@ funcs = {
     "Skill": execSkill
 }
 
-funcArgs = {
-    "Read": ["file_path"],
-    "Write": ["file_path", "content"],
-    "Bash": ["command"],
-    "Skill": ["name", "args"]
-}
-
 def renderSkills() -> str:
     try:
         skills = "You have access to the following skills: \n"
@@ -147,8 +140,7 @@ def execToolCall(toolCall):
     if toolCall.type == "function": 
         functionName = toolCall.function.name
         toolArgs  = json.loads(toolCall.function.arguments)
-        reqArgs = funcArgs[functionName]
-        args = [toolArgs[arg] for arg in reqArgs]
+        args = [toolArgs[arg] for arg in toolArgs]
         result = funcs[functionName](*args)
     return result
 

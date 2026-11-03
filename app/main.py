@@ -63,14 +63,16 @@ def main():
     print("Logs from your program will appear here!", file=sys.stderr)
 
     toolCalls = chat.choices[0].message.tool_calls
-    for toolCall in toolCalls:
-        if toolCall.type == "function":
-            functionName = toolCall.function.name
-            toolArgs  = json.loads(toolCall.function.arguments)
-            reqArgs = funcArgs[functionName]
-            args = [toolArgs[arg] for arg in reqArgs]
-            result = funcs[functionName](*args)
-            print(result)
+
+    if toolCalls and len(toolCalls) == 0:
+        for toolCall in toolCalls:
+            if toolCall.type == "function":
+                functionName = toolCall.function.name
+                toolArgs  = json.loads(toolCall.function.arguments)
+                reqArgs = funcArgs[functionName]
+                args = [toolArgs[arg] for arg in reqArgs]
+                result = funcs[functionName](*args)
+                print(result)
 
     # print(chat.choices[0].message.content)
 

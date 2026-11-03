@@ -8,6 +8,7 @@ from openai import OpenAI
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
+SKILLS_PARENT_FOLDER = "ccSkill/skills"
 
 def execRead(file_path: str) -> str:
     content = ""
@@ -34,6 +35,15 @@ funcArgs = {
     "Write": ["file_path", "content"],
     "Bash": ["command"]
 }
+
+def renderSkills() -> str:
+    skills = "You have access to the following skills: \n"
+    for skillFolder in os.listdir(SKILLS_PARENT_FOLDER):
+        with open(f"{SKILLS_PARENT_FOLDER}/{skillFolder}/SKILL.md", "r") as f:
+            lines = [l.split(":")[1].strip() for l in list(f.read().split("---"))[1].split("\n") if l]
+            skillDescription = ":".join(lines)
+            skills += "\n" + skillDescription
+    return skills
 
 def callLLM(client, messages): 
     return client.chat.completions.create(
@@ -143,7 +153,10 @@ def main():
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-    messages = [{"role": "user", "content": args.p}]
+    messages = [
+        {"role": "system", "content": renderSkills()},
+        {"role": "user", "content": args.p}
+    ]
     execLoop(client, messages)
 
     

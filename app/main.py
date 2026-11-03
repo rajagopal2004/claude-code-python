@@ -181,6 +181,9 @@ def main():
             skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
         messages.append({"role": "user", "content": skillBody})
         
+    if len(esk) == 0:
+        messages.append({"role": "user", "content": " ".join(uiw)})
+        
     execLoop(client, messages)
 
     

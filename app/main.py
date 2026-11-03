@@ -24,7 +24,7 @@ def execBash(command: str) -> str:
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return f"returncode: {result.returncode}, stderr: {result.stderr}, stdout: {result.stdout}"
 
-def execSkill(name, args):
+def execSkill(name, args = None):
     name = "/"+name
     return resolveSkillBody(name, args)
 
@@ -51,10 +51,11 @@ def renderSkills() -> str:
 def resolveSkillBody(skill, sargs) -> str:
     with open(f"{SKILLS_PARENT_FOLDER}{skill}/SKILL.md", "r") as f:
         skillBody = f.read().split("---")[2]
-    skillBody = skillBody.replace("$ARGUMENTS", " ".join(sargs))
-    for i, skillArg in list(zip(range(len(sargs)), sargs)):
-        skillBody = skillBody.replace(f"${i}", skillArg)
-        skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
+    if sargs:
+        skillBody = skillBody.replace("$ARGUMENTS", " ".join(sargs))
+        for i, skillArg in list(zip(range(len(sargs)), sargs)):
+            skillBody = skillBody.replace(f"${i}", skillArg)
+            skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
     return skillBody
 
 def callLLM(client, messages): 

@@ -63,9 +63,7 @@ def main():
     print("Logs from your program will appear here!", file=sys.stderr)
 
     message = chat.choices[0].message
-    toolCalls = message.tool_calls
-    print(toolCalls, file=sys.stderr)
-    # print(toolCalls[0], file=sys.stderr)
+    toolCalls = message.tool_calls if message.tool_calls else []
 
     for toolCall in toolCalls:
         if toolCall.type == "function":
@@ -75,8 +73,6 @@ def main():
             args = [toolArgs[arg] for arg in reqArgs]
             result = funcs[functionName](*args)
             print(result)
-
-    # print(chat.choices[0].message.content)
 
 
 if __name__ == "__main__":

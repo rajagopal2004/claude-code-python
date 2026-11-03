@@ -22,19 +22,10 @@ funcArgs = {
     "Read": ["file_path"]
 }
 
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("-p", required=True)
-    args = p.parse_args()
-
-    if not API_KEY:
-        raise RuntimeError("OPENROUTER_API_KEY is not set")
-
-    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
-
-    chat = client.chat.completions.create(
+def callLLM(client, messages): 
+    return client.chat.completions.create(
         model="anthropic/claude-haiku-4.5",
-        messages=[{"role": "user", "content": args.p}],
+        messages=messages,
         tools=[
             {
                 "type": "function",
@@ -56,26 +47,54 @@ def main():
         ]
     )
 
+def execToolCall(toolCall):
+    result = None
+    if toolCall.type == "function": 
+        functionName = toolCall.function.name
+        toolArgs  = json.loads(toolCall.function.arguments)
+        reqArgs = funcArgs[functionName]
+        args = [toolArgs[arg] for arg in reqArgs]
+        result = funcs[functionName](*args)
+    return result
+
+def execLoop(client, messages):
+    chat = callLLM(client, messages)
+
     if not chat.choices or len(chat.choices) == 0:
         raise RuntimeError("no choices in response")
+    
+    messages.append(chat.choices[0].message)
+    
+    toolCalls = chat.choices[0].message.tool_calls
+    if toolCalls is None:
+        if chat.choices[0].message.content is not None:
+            print(chat.choices[0].message.content)
+        return 
+        
+    for toolCall in toolCalls:
+        result = execToolCall(toolCall)
+        toolCallEntry = {
+            "role": "tool",
+            "tool_call_id": toolCall.id,
+            "content": result
+        }
+        messages.append(toolCallEntry)
 
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!", file=sys.stderr)
-    if chat.choices[0].message.content is not None:
-        print(chat.choices[0].message.content)
+    return execLoop(client, messages)
 
-    message = chat.choices[0].message
-    toolCalls = message.tool_calls 
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("-p", required=True)
+    args = p.parse_args()
 
-    if toolCalls is not None:
-        for toolCall in toolCalls:
-            if toolCall.type == "function":
-                functionName = toolCall.function.name
-                toolArgs  = json.loads(toolCall.function.arguments)
-                reqArgs = funcArgs[functionName]
-                args = [toolArgs[arg] for arg in reqArgs]
-                result = funcs[functionName](*args)
-                print(result)
+    if not API_KEY:
+        raise RuntimeError("OPENROUTER_API_KEY is not set")
+
+    client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
+
+    messages = [{"role": "user", "content": args.p}]
+    execLoop(client, messages)
+    print(messages)
 
     
 

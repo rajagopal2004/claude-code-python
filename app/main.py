@@ -23,17 +23,23 @@ def execWrite(file_path: str, content: str) -> None:
 def execBash(command: str) -> str:
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return f"returncode: {result.returncode}, stderr: {result.stderr}, stdout: {result.stdout}"
-    
+
+def execSkill(name, args):
+    name = "/"+name
+    return resolveSkillBody(name, args)
+
 funcs = {
     "Read": execRead,
     "Write": execWrite,
-    "Bash": execBash
+    "Bash": execBash,
+    "Skill": execSkill
 }
 
 funcArgs = {
     "Read": ["file_path"],
     "Write": ["file_path", "content"],
-    "Bash": ["command"]
+    "Bash": ["command"],
+    "Skill": ["name", "args"]
 }
 
 def renderSkills() -> str:
@@ -44,6 +50,7 @@ def renderSkills() -> str:
                 lines = [l.split(":")[1].strip() for l in list(f.read().split("---"))[1].split("\n") if l]
                 skillDescription = ":".join(lines)
                 skills += "\n" + skillDescription
+        skills += "\n If a skill matches the user's request, call the Skill tool with its name and follow the instructions it returns."
     except:
         skills = ""
     return skills
@@ -115,6 +122,21 @@ def callLLM(client, messages):
                         }
                     }
                     }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                "name": "Skill",
+                "description": "Load a skill's instructions into the conversation",
+                "parameters": {
+                    "type": "object",
+                    "required": ["name"],
+                    "properties": {
+                    "name": { "type": "string", "description": "The name of the skill to use" },
+                    "args": { "type": "string", "description": "Optional arguments for the skill" }
+                    }
+                }
                 }
             }
         ]

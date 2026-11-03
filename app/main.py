@@ -142,7 +142,6 @@ def execToolCall(toolCall):
         functionName = toolCall.function.name
         toolArgs  = json.loads(toolCall.function.arguments)
         args = list(toolArgs.values())
-        print(args)
         result = funcs[functionName](*args)
     return result
 

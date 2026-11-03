@@ -64,6 +64,7 @@ def main():
 
     message = chat.choices[0].message
     toolCalls = message.tool_calls
+    print(toolCalls, file=sys.stderr)
     print(toolCalls[0], file=sys.stderr)
 
     for toolCall in toolCalls:

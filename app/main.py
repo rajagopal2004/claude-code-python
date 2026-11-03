@@ -48,9 +48,14 @@ def renderSkills() -> str:
         skills = ""
     return skills
 
-def resolveSkillBody(skill) -> str:
+def resolveSkillBody(skill, sargs) -> str:
     with open(f"{SKILLS_PARENT_FOLDER}{skill}/SKILL.md", "r") as f:
-        return f.read().split("---")[2]
+        skillBody = f.read().split("---")[2]
+    skillBody = skillBody.replace("$ARGUMENTS", " ".join(sargs))
+    for i, skillArg in list(zip(range(len(sargs)), sargs)):
+        skillBody = skillBody.replace(f"${i}", skillArg)
+        skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
+    return skillBody
 
 def callLLM(client, messages): 
     return client.chat.completions.create(
@@ -174,19 +179,14 @@ def main():
            break
     
     for skillName in esk:
-        skillBody = resolveSkillBody(skillName)
-        skillBody = skillBody.replace("$ARGUMENTS", " ".join(sargs))
-        for i, skillArg in list(zip(range(len(sargs)), sargs)):
-            skillBody = skillBody.replace(f"${i}", skillArg)
-            skillBody = skillBody.replace(f"ARGUMENTS[{i}]", skillArg)
+        skillBody = resolveSkillBody(skillName, sargs)
         messages.append({"role": "user", "content": skillBody})
-        
+
     if len(esk) == 0:
         messages.append({"role": "user", "content": " ".join(uiw)})
         
     execLoop(client, messages)
-
-    
+ 
 
 if __name__ == "__main__":
     main()
